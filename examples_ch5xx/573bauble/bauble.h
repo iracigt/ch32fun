@@ -3,122 +3,61 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef CH570_CH572
-#define CRCPOLY1           BB2
-#define ACCESSADDRESS1     BB3
-#define CTRL_TX            BB13
-#define CRCINIT2           BB22
-#define CRCPOLY2           BB23
-#define ACCESSADDRESS2     BB24
-#define TMR                LL25
-#define FRAME_BUF          LL30
-#define STATE_BUF          LL31
-#define CTRL_MOD_RFSTOP    0xfffff8ff
-#define DEVSETMODE_ON      ((BB->CTRL_CFG & 0xfffcffff) | 0x20000)
-#define DEVSETMODE_OFF     ((BB->CTRL_CFG & 0xfffcffff) | 0x10000)
-#define DEVSETMODE_TUNE    0x0558
-#define DEVSETMODE_TX      0x0258
-#define DEVSETMODE_RX      0x0158
-#define CTRL_CFG_PHY_1M    ((BB->CTRL_CFG & 0xfffffcff) | 0x100)
-#define CTRL_CFG_PHY_2M    (BB->CTRL_CFG & 0xfffffcff)
-#define LL_STATUS_TX       0x20000
-#define CTRL_CFG_START_TX  0x1000000
-#elif defined(CH571_CH573)
-#define TXBUF 		       DMA4
-#define ACCESSADDRESS1     BB2
-#define CTRL_TX            BB11
-#define TMR                LL24
-#define FRAME_BUF          LL28
-#define STATE_BUF          LL29
-#define RFEND_TXCTUNE_INIT 0x180000
-#define CTRL_MOD_RFSTOP    0xfffffff8
-#define DEVSETMODE_TUNE    0x5d
-#define DEVSETMODE_TX      0x5a
-#define DEVSETMODE_RX      0x59
-#define CTRL_CFG_PHY_1M    (BB->CTRL_CFG | 0x10000000)
-#define LL_STATUS_TX       0x20000
-#define CTRL_CFG_START_TX  (BB->CTRL_CFG & 0xefffffff)
-#elif defined(CH582_CH583)
-#define ACCESSADDRESS1     BB2
-#define CTRL_TX            BB11
-#define TMR                LL25
-#define FRAME_BUF          LL28
-#define STATE_BUF          LL29
-#define RFEND_TXCTUNE_INIT 0x880000
-#define CTRL_TX_TXPOWER    0x80010e78
-#define CTRL_MOD_RFSTOP    0xfffffff8
-#define DEVSETMODE_ON      ((BB->CTRL_CFG & 0xfffffe7f) | 0x100)
-#define DEVSETMODE_OFF     ((BB->CTRL_CFG & 0xfffffe7f) | 0x80)
-#define DEVSETMODE_TUNE    0x00dd
-#define DEVSETMODE_TX      0x00da
-#define DEVSETMODE_RX      0x00d9
-#define CTRL_CFG_PHY_1M    ((BB->CTRL_CFG & 0xffff0fff) | 0x1000)
-#define CTRL_CFG_PHY_2M    (BB->CTRL_CFG & 0xffff0fff)
-#define CTRL_CFG_PHY_CODED ((BB->CTRL_CFG & 0xffff0fff) | 0x2000)
-#define LL_STATUS_TX       0x2000
-#define CTRL_CFG_START_TX  0x800000
-#elif (defined(CH584_CH585) || defined(CH591_CH592))
-#define ACCESSADDRESS1     BB2
-#define CTRL_TX            BB11
-#define TMR                LL25
-#define FRAME_BUF          LL30
-#define STATE_BUF          LL31
-#define CTRL_MOD_RFSTOP    0xfffff8ff
-#define DEVSETMODE_ON      ((BB->CTRL_CFG & 0xfffffcff) | 0x280)
-#define DEVSETMODE_OFF     ((BB->CTRL_CFG & 0xfffffcff) | 0x100)
-#define DEVSETMODE_TUNE    0x0558
-#define DEVSETMODE_TX      0x0258
-#define DEVSETMODE_RX      0x0158
-#define CTRL_CFG_PHY_1M    (BB->CTRL_CFG & 0xffffff7f)
-#define CTRL_CFG_PHY_2M    (BB->CTRL_CFG | 0x80)
-#define LL_STATUS_TX       0x20000
-#define CTRL_CFG_START_TX  0x800000
-#elif defined(CH32V20x)
-#define CH32V208
-#define ACCESSADDRESS1     BB2
-#define CTRL_TX            BB11
-#define TMR                LL25
-#define FRAME_BUF          LL28
-#define STATE_BUF          LL29
-#define RFEND_TXCTUNE_INIT 0x100000
-#define CTRL_TX_TXPOWER    0x80010ec8
-#define CTRL_MOD_RFSTOP    0xfffffff8
-#define DEVSETMODE_ON      ((BB->CTRL_CFG & 0xfffffe7f) | 0x100)
-#define DEVSETMODE_OFF     ((BB->CTRL_CFG & 0xfffffe7f) | 0x80)
-#define DEVSETMODE_TUNE    0x5d
-#define DEVSETMODE_TX      0x5a
-#define DEVSETMODE_RX      0x59
-#define CTRL_CFG_PHY_1M    ((BB->CTRL_CFG & 0xffff0fff) | 0x1000)
-#define CTRL_CFG_PHY_2M    (BB->CTRL_CFG & 0xffff0fff)
-#define CTRL_CFG_PHY_CODED ((BB->CTRL_CFG & 0xffff0fff) | 0x2000)
-#define LL_STATUS_TX       0x2000
-#define CTRL_CFG_START_TX  0x800000
+#ifdef CH571_CH573
+#define CTRL_CFG 				BB0
+#define CRCINIT1				BB1
+#define ACCESSADDRESS1     		BB2
+#define CTRL_TX            		BB11
+#define RSSI_ST					BB12
+#define BBINTEN					BB13
+#define BBSTATUS				BB14
+
+#define LLCMD					LL0
+#define LLCFG					LL1
+#define LLSTATUS 				LL2
+#define LLINTEN 				LL3
+#define CTRL_MOD 				LL20
+#define TMR               		LL24
+#define FRAME_BUF          		LL28
+#define STATE_BUF          		LL29
+
+#define DMA0_CTRL_CFG			DMA2
+#define DMA2_CTRL_CFG			DMA3
+#define DMA0_TX_SRC				DMA4
+#define DMA0_TX_SRC				DMA4
+#define DMA2_TX_SRC				DMA5
+#define DMA0_RX_DST				DMA6
+#define DMA2_RX_DST				DMA7
+
+#define LLCMD_RX				(1<<0)
+#define LLCMD_TX				(1<<1)
+// Not 100% sure which is which here
+#define LLCMD_STOP				(1<<2)
+#define LLCMD_SHUT				(1<<3)
+
+#define RFEND_TXCTUNE_INIT 		0x180000
+#define CTRL_MOD_RFSTOP    		0xfffffff8
+#define DEVSETMODE_TUNE    		0x5d
+#define DEVSETMODE_TX      		0x5a
+#define DEVSETMODE_RX      		0x59
+#define CTRL_CFG_PHY_1M    		(BB->CTRL_CFG | 0x10000000)
+#define LL_STATUS_TX       		0x20000
+#define CTRL_CFG_START_TX  		(BB->CTRL_CFG & 0xefffffff)
 #else
 #error "MCU_TARGET selected in Makefile is not supported"
 #endif
 
-#ifdef CH32V208
-#define BB_BASE  (0x40024100) // Baseband, digital part of the PHY
-#define LL_BASE  (0x40024200) // Link Layer, MAC
-#define RF_BASE  (0x40025000) // Radio frontend, analog part of the PHY
-#else
 #define DMA_BASE (0x4000c000)
 #define BB_BASE  (0x4000c100)
 #define LL_BASE  (0x4000c200)
+#define AES_BASE (0x4000c300)
 #define RF_BASE  (0x4000d000)
-#endif
 
 #define DMA ((DMA_Type *) DMA_BASE)
 #define BB  ((BB_Type *)  BB_BASE)
 #define LL  ((LL_Type *)  LL_BASE)
 #define RF  ((RF_Type *)  RF_BASE)
 
-#define R32_DMA ((volatile uint32_t *) DMA_BASE)
-#define R32_BB ((volatile uint32_t *) BB_BASE)
-#define R32_LL ((volatile uint32_t *) LL_BASE)
-#define R32_RF ((volatile uint32_t *) RF_BASE)
-
-#ifdef CH571_CH573
 typedef struct {
 	volatile uint32_t DMA0;
 	volatile uint32_t DMA1;
@@ -129,7 +68,6 @@ typedef struct {
 	volatile uint32_t DMA6;
 	volatile uint32_t DMA7;
 } DMA_Type;
-#endif
 
 typedef struct {
 	// bits 0..5 = Channel
@@ -142,9 +80,8 @@ typedef struct {
 	// bit 20 = settable, but unknown effect.
 	// bit 24 = set at end of tx routine
 	// bit 29-31 = settable, but unknown effect.
-	volatile uint32_t CTRL_CFG;
-
-	volatile uint32_t CRCINIT1;
+	volatile uint32_t BB0;
+	volatile uint32_t BB1;
 	volatile uint32_t BB2; // ch570/2: CRCPOLY1, [ch582/3 ch591/2]: ACCESSADDRESS1
 	volatile uint32_t BB3; // ch570/2 ACCESSADDRESS1
 	volatile uint32_t BB4;
@@ -183,8 +120,8 @@ typedef struct {
 typedef struct {
 	volatile uint32_t LL0;
 	volatile uint32_t LL1;
-	volatile uint32_t STATUS;
-	volatile uint32_t INT_EN;
+	volatile uint32_t LL2;
+	volatile uint32_t LL3;
 	volatile uint32_t LL4;
 	volatile uint32_t LL5;
 	volatile uint32_t LL6;
@@ -212,7 +149,7 @@ typedef struct {
 	// Bit 9: If 0, no output.
 	// Bit 10: Somehow required for TX?
 	// Bit 16-17: Normally 1, unknown effect. Seems to suppress odd carrier burst after message.
-	volatile uint32_t CTRL_MOD;
+	volatile uint32_t LL20;
 	volatile uint32_t LL21;
 	volatile uint32_t LL22;
 	volatile uint32_t LL23;
@@ -281,18 +218,8 @@ uint8_t channel_map[] = {1,2,3,4,5,6,7,8,9,10,12,13,14,15,16,17,18,19,20,21,22,2
 #define PHY_S8 8
 
 void DevSetMode(uint16_t mode);
-
-#ifdef CH571_CH573
-__attribute((section(".dma")))
-#endif
-__attribute__((aligned(4))) uint8_t LLE_BUF[0x110];
-
-#ifdef CH571_CH573
-__attribute((section(".dma")))
-#endif
-__attribute__((aligned(4))) uint8_t LLE_BUF2[0x110];
-
-
+__attribute__((section(".dma"))) uint8_t LLE_BUF_TX[0x110];
+__attribute__((section(".dma"))) uint8_t LLE_BUF_RX[0x110];
 volatile uint32_t tuneFilter;
 volatile uint32_t tuneFilter2M;
 volatile uint32_t rx_ready;
@@ -306,15 +233,15 @@ __attribute((section(VECTOR_HANDLER_SECTION)))
 #endif
 void BB_IRQHandler() {
 	printf("BB\n");
-	if(BB->BB14 & (1<<6)) {
-		BB->BB14 &= 0xffffff9f;
+	if(BB->BBSTATUS & (1<<6)) {
+		BB->BBSTATUS &= 0xffffff9f;
 	}
-	if(BB->BB14 & (1<<1)) {
-		BB->BB14 = 0xfffffffd;
+	if(BB->BBSTATUS & (1<<1)) {
+		BB->BBSTATUS = 0xfffffffd;
 		LL->CTRL_MOD = 0x45;
 	}
-	if(BB->BB14 & (1<<4)) {
-		BB->BB14 = 0xffffffef;
+	if(BB->BBSTATUS & (1<<4)) {
+		BB->BBSTATUS = 0xffffffef;
 		LL->CTRL_MOD = 0;
 	}
 }
@@ -325,10 +252,9 @@ __attribute__((interrupt))
 __attribute((section(VECTOR_HANDLER_SECTION)))
 #endif
 void LLE_IRQHandler() {
-	uint32_t flags = LL->STATUS;
-	printf("LL IRQ = %04x %04x\n", flags >> 16, flags & 0xffff);
+	uint32_t flags = LL->LLSTATUS;
+	// printf("LL IRQ = %04x %04x\n", flags >> 16, flags & 0xffff);
 
-#ifdef CH571_CH573
 	// printf("LL25 = %08x\n", LL->LL25);
 	// printf("LL->LL24_TMR = %08x\n", LL->TMR);
 
@@ -381,33 +307,13 @@ void LLE_IRQHandler() {
 
 	}
 
-#elif defined(CH582_CH583)
-	if((LL->STATUS & (1<<14)) && (LL->INT_EN & (1<<14))) {
-		LL->LL26 = 0xffffffff;
-		LL->STATUS = 0x4000;
-
-		DevSetMode(0);
-		LL->CTRL_MOD &= CTRL_MOD_RFSTOP;
-		LL->LL0 |= 0x08;
-	} else {
-		LL->STATUS &= LL->INT_EN;
-		BB->CTRL_TX = (BB->CTRL_TX & 0xfffffffc) | 1;
-	}
-#ifdef ISLER_CALLBACK
-		ISLER_CALLBACK();
-#else
-		rx_ready = 1;
-#endif
-#endif
-
 	// Clear all pending interrupts
-	LL->STATUS = 0;
+	LL->LLSTATUS = 0;
 
-	// printf("LL EXIT IRQ = 0x%08x\n", LL->STATUS);
+	// printf("LL EXIT IRQ = 0x%08x\n", LL->LLSTATUS);
 }
 
 void RFEND_Reset() {
-#ifdef CH571_CH573
 	RF->RF3 |= 0x1000;
 	ADD_N_NOPS(20);
 	RF->RF3 &= 0xffffefff;
@@ -426,108 +332,51 @@ void RFEND_Reset() {
 	ADD_N_NOPS(20);
 	RF->RF3 |= 0x100;
 	ADD_N_NOPS(20);
-#elif defined(CH32V208)
-	RF->RF3 = 0x1101;
-	ADD_N_NOPS(20);
-	RF->RF3 = 0;
-	ADD_N_NOPS(20);
-	RF->RF3 = 0x1101;
-#endif
 }
 
 void SetAccessAddress(uint32_t address) {
 	BB->ACCESSADDRESS1 = address;
 }
 
+uint8_t ReadRSSI() {
+	return (uint8_t)(BB->RSSI_ST >> 12);
+}
+
 void DevInit(uint8_t TxPower) {
 
-#ifdef CH571_CH573
-	LL->LL5 = 0x50;
-	LL->LL7 = 10;
-	LL->LL9 = 0x8c;
-	LL->LL13 = 0x8c;
-	LL->LL17 = 0x50;
-	LL->LL19 = 10;
-#elif defined(CH570_CH572) || defined(CH582_CH583) || defined(CH584_CH585) || defined(CH591_CH592)
-	LL->LL5 = 0x8c;
-	LL->LL7 = 0x76;
-	LL->LL9 = 0x8c;
-	LL->LL13 = 0x8c;
-	LL->LL17 = 0x8c;
-	LL->LL19 = 0x76;
-#elif defined(CH32V208)
-	LL->LL5 = 0x8c;
-	LL->LL7 = 0x6c;
-	LL->LL9 = 0x8c;
-	LL->LL13 = 0x8c;
-	LL->LL17 = 0x8c;
-	LL->LL19 = 0x6c;
-#endif
+	LL->LL5  =  80;
+	LL->LL7  =  10;
+	LL->LL9	 = 140;
+	LL->LL13 = 140;   
+	LL->LL17 =  80;
+	LL->LL19 =  10;
 
-#ifdef CH570_CH572
-	LL->LL11 = 0x6c;
-	LL->LL15 = 0x6c;
-	LL->LL1 = 0x78;
-	LL->LL21 = 0;
-	LL->INT_EN = 0x16000f;
-#elif defined(CH571_CH573)
-	LL->LL11 = 0x3c;
-	LL->LL15 = 0x3c;
-	LL->LL22 = 0xf6;
-	LL->INT_EN = 0xc303;
+	LL->LL11 = 60;
+	LL->LL15 = 60;
+	LL->LL22 = 246;
+
+	LL->LLINTEN = 0xc303;
 	NVIC->FIBADDRR = 0x20000000;
 	NVIC->VTFADDR[2] = (uint32_t)LLE_IRQHandler -NVIC->FIBADDRR;
-#elif defined(CH582_CH583) || defined(CH32V208)
-	LL->LL11 = 0x3c;
-	LL->LL15 = 0x3c;
-	LL->INT_EN = 0xf00f;
-#elif defined(CH584_CH585)
-	LL->LL11 = 0x6e;
-	LL->LL15 = 0x6e;
-	LL->LL1 &= 0xffffffe1;
-	LL->LL21 = 0;
-	LL->INT_EN = 0x1f000f;
-#elif defined(CH591_CH592)
-	LL->LL6 = 0x78;
-	LL->LL8 = 0xffffffff;
-	LL->LL11 = 0x6e;
-	LL->LL21 = 0x14;
-	LL->INT_EN = 0x1f000f;
-#endif
 
-#ifdef CH571_CH573
-	DMA->DMA4 = (uint32_t)LLE_BUF;
-	DMA->DMA5 = (uint32_t)LLE_BUF;
-	DMA->DMA6 = (uint32_t)LLE_BUF2;
-	DMA->DMA7 = (uint32_t)LLE_BUF2;
-	DMA->DMA2 |= 0x2000;
-	DMA->DMA3 |= 0x2000;
-	DMA->DMA2 |= 0x1000;
-	DMA->DMA3 |= 0x1000;
+
+	DMA->DMA0_TX_SRC = (uint32_t)LLE_BUF_TX;
+	DMA->DMA2_TX_SRC = (uint32_t)LLE_BUF_TX;
+	DMA->DMA0_RX_DST = (uint32_t)LLE_BUF_RX;
+	DMA->DMA2_RX_DST = (uint32_t)LLE_BUF_RX;
+
+	DMA->DMA0_CTRL_CFG |= 0x2000;
+	DMA->DMA2_CTRL_CFG |= 0x2000;
+
+	DMA->DMA0_CTRL_CFG |= 0x1000;
+	DMA->DMA2_CTRL_CFG |= 0x1000;
+
 	DMA->DMA0 |= 2;
 	DMA->DMA0 |= 0x20;
-#else
-	LL->STATE_BUF = (uint32_t)LLE_BUF;
-#endif
 
-	LL->STATUS = 0xffffffff;
+	LL->LLSTATUS = 0xffffffff;
 	RF->RF10 = 0x480;
 
-#ifdef CH570_CH572
-	RF->RF12 &= 0xfff9ffff;
-	RF->RF12 |= 0x70000000;
-	RF->RF15 = (RF->RF15 & 0xf8ffffff) | 0x2000000;
-	RF->RF15 = (RF->RF15 & 0x1fffffff) | 0x40000000;
-	RF->RF18 &= 0xfff8ffff;
-	RF->RF20 = (RF->RF20 & 0xfffff8ff) | 0x300;
-	RF->RF23 |= 0x70000;
-	RF->RF23 |= 0x700000;
-
-	BB->BB14 = 0x2020c;
-	BB->BB15 = 0x50;
-	BB->CTRL_TX = (BB->CTRL_TX & 0x1ffffff) | (TxPower | 0x40) << 0x19;
-	BB->CTRL_CFG &= 0xfffffcff;
-#elif defined(CH571_CH573) || defined(CH582_CH583) || defined(CH32V208)
 	RFEND_Reset();
 	RF->RF18 = (RF->RF18 & 0x8fffffff) | 0x20000000;
 	RF->RF18 = (RF->RF18 & 0xf8ffffff) | 0x4000000;
@@ -558,7 +407,6 @@ void DevInit(uint8_t TxPower) {
 	RF->TXTUNE_CTRL = (RF->TXTUNE_CTRL & 0xff07ffff) | RFEND_TXCTUNE_INIT;
 	RF->TXTUNE_CTRL |= 0x80000000;
 
-#ifdef CH571_CH573
 	BB->CTRL_CFG = (TxPower << 8) | BB->CTRL_CFG | 0x1008000;
 	BB->CTRL_CFG = (BB->CTRL_CFG & 0xffffc0ff) | (TxPower & 0x3f) << 8;
 	SYS_SAFE_ACCESS(
@@ -568,69 +416,15 @@ void DevInit(uint8_t TxPower) {
 	BB->CTRL_TX = 0x10e78;
 	BB->BB6 |= 0x8000;
 	BB->BB6 = (BB->BB6 & 0xffff807f) | 0x3500;
-	BB->BB13 = 0x152;
+	BB->BBINTEN = 0x152;
 
 	NVIC->VTFADDR[3] = (uint32_t)BB_IRQHandler +0x14000000; // why 14000000?
-#elif defined(CH582_CH583) || defined(CH32V208)
-	BB->CTRL_CFG |= 0x800000;
-	BB->CTRL_CFG |= 0x10000000;
-	BB->BB13 = 0x1d0;
-	BB->CTRL_TX = TxPower << 0x19 | CTRL_TX_TXPOWER;
-	BB->CTRL_TX = (BB->CTRL_TX & 0x81ffffff) | (TxPower & 0x3f) << 0x19;
-	BB->BB8 = 0x90083;
 
-	// NVIC->VTFADDR[3] = (uint32_t)BB_IRQHandler +0x20000000; // why 20000000?
-#endif
-#elif defined(CH584_CH585) || defined(CH591_CH592)
-	RF->RF12 = (RF->RF12 & 0x8fffffff) | 0x10077700;
-	RF->RF15 = (RF->RF15 & 0x18ff0fff) | 0x42005000;
-	RF->RF19 &= 0xfffcff88;
-	RF->RF21 = (RF->RF21 & 0xfffffff0) | 9;
-	RF->RF23 &= 0xff88ffff;
-
-	BB->CTRL_CFG |= 0x800000;
-	BB->BB14 = 0x3ff; // ch584/5
-	BB->BB13 = 0x50;
-	BB->CTRL_TX = (BB->CTRL_TX & 0x81ffffff) | (TxPower & 0x3f) << 0x19;
-	uint32_t uVar3 = 0x1000000;
-	uint32_t uVar4 = RF->RF23 & 0xf8ffffff;
-	if(TxPower < 29) { // ch585: 27
-		/* uVar3 and uVar4 are initialized properly already */
-	}
-	else if(TxPower < 35) {
-		uVar3 = 0x3000000;
-	}
-	else if(TxPower < 59) {
-		uVar3 = 0x5000000;
-	}
-	else {
-		uVar4 = RF->RF23;
-		uVar3 = 0x7000000;
-	}
-	RF->RF23 = uVar4 | uVar3;
-	BB->BB15 = 0x2020c; // ch584/5
-	BB->BB4 = (BB->BB4 & 0xffffffc0) | 0xe;
-#endif
 	SetAccessAddress(0x8E89BED6);
 	NVIC->VTFIDR[3] = 0x14;
 }
 
 void DevSetMode(uint16_t mode) {
-#if !defined(CH571_CH573)
-	if(mode) {
-		BB->CTRL_CFG = DEVSETMODE_ON;
-		RF->RF2 |= 0x330000;
-	}
-	else {
-		BB->CTRL_CFG = DEVSETMODE_OFF;
-		RF->RF2 &= 0xffcdffff;
-	}
-#ifdef CH582_CH583
-	mode = (mode == 0) ? 0x80 : mode;
-#elif !defined(CH32V208)
-	mode |= 0x30000;
-#endif
-#endif // ! CH571_CH573
 	LL->CTRL_MOD = mode;
 }
 
@@ -765,10 +559,9 @@ void RegInit() {
 }
 
 void RFCoreInit(uint8_t TxPower) {
-#if defined(CH571_CH573) || defined(CH584_CH585) // maybe all?
 	NVIC->IENR[0] = 0x1000;
 	NVIC->IRER[0] = 0x1000;
-#endif
+
 	DevInit(TxPower);
 	RegInit();
 	NVIC->IPRIOR[0x15] |= 0x80;
@@ -776,151 +569,101 @@ void RFCoreInit(uint8_t TxPower) {
 }
 
 void DevSetChannel(uint8_t channel) {
-#ifdef CH571_CH573
+
 	BB->BB6 = (BB->BB6 & 0xf8ffffff) | 0x4000000;
 	BB->BB6 = (BB->BB6 & 0xffffff83) | 0x1c;
-#endif
+
 	RF->RF11 &= 0xfffffffd;
 	BB->CTRL_CFG = (BB->CTRL_CFG & 0xffffff80) | (channel & 0x7f);
 }
 
-void Frame_TX(uint8_t adv[], size_t len, uint8_t channel, uint8_t phy_mode) {
+void DevSetFrequency(uint32_t freq) {
+
+	// BB->BB6 = (BB->BB6 & 0xf8ffffff) | 0x4000000;
+	// BB->BB6 = (BB->BB6 & 0xffffff83) | 0x1c;
+
+	// Set RFEND to raw freq mode?
+	RF->RF11 |= 2;
+
+	// I think this still would control whitening prn
+	// BB->CTRL_CFG = (BB->CTRL_CFG & 0xffffff80) | (channel & 0x7f);
+
+	RF->RF17 = (RF->RF17 & 0xfe0fffff) | ((freq / 64000 & 0x1f) << 20);
+	RF->RF17 = (RF->RF17 & 0xfffc0000) | ((freq % 64000 << 10) / 250 & 0x3ffff);
+}
+
+void Frame_TX(uint8_t adv[], size_t len) {
 	__attribute__((aligned(4))) uint8_t  ADV_BUF[len+2]; // for the advertisement, which is 37 bytes + 2 header bytes
 
 	BB->CTRL_TX = (BB->CTRL_TX & 0xfffffffc) | 1;
-
-	DevSetChannel(channel);
 
 	// Uncomment to disable whitening to debug RF.
 	//BB->CTRL_CFG |= (1<<6);
 	DevSetMode(DEVSETMODE_TX);
 
 	BB->CRCINIT1 = 0x555555; // crc init
-#ifdef CH570_CH572
-	BB->ACCESSADDRESS2 = 0x8E89BED6;
-	BB->CRCINIT2 = 0x555555;
-	BB->CRCPOLY1 = (BB->CRCPOLY1 & 0xff000000) | 0x80032d; // crc poly
-	BB->CRCPOLY2 = (BB->CRCPOLY2 & 0xff000000) | 0x80032d;
-#endif
+
 	// LL->LL1 = (LL->LL1 & 0xfffffffe) | 1; // The "| 1" is for AUTO mode, to swap between RX <-> TX when either happened
 
 	ADV_BUF[0] = 0x02; // PDU 0x00, 0x02, 0x06 seem to work, with only 0x02 showing up on the phone
 	ADV_BUF[1] = len ;
 	memcpy(&ADV_BUF[2], adv, len);
 
-#if defined(CH571_CH573)
-	DMA->TXBUF = (uint32_t)ADV_BUF;
-#else
-	LL->FRAME_BUF = (uint32_t)ADV_BUF;
-#endif
+
+	DMA->DMA0_TX_SRC = (uint32_t)ADV_BUF;
 
 	// Wait for tuning bit to clear.
 	for( int timeout = 3000; !(RF->RF26 & 0x1000000) && timeout >= 0; timeout-- );
 
-#if defined(CH582_CH583) || defined(CH32V208)
-	BB->CTRL_CFG = (phy_mode == PHY_2M) ? CTRL_CFG_PHY_2M:
-				   (phy_mode == PHY_S2) ? CTRL_CFG_PHY_CODED:
-				   (phy_mode == PHY_S8) ? CTRL_CFG_PHY_CODED:
-										  CTRL_CFG_PHY_1M; // default 1M for now
-	if(phy_mode > PHY_2M) { // coded phy
-		BB->CTRL_CFG = (BB->CTRL_CFG & 0xffff3fff) | ((phy_mode == PHY_S2) ? 0x4000 : 0);
-	}
-#elif defined(CH571_CH573)
 	BB->CTRL_CFG = CTRL_CFG_PHY_1M; // no 2M PHY on ch571/3
-#else
-	BB->CTRL_CFG = (phy_mode == PHY_2M) ? CTRL_CFG_PHY_2M:
-										  CTRL_CFG_PHY_1M; // default 1M for now
-#endif
 
-#if defined(CH570_CH572)
-	BB->BB9 = (BB->BB9 & 0xf9ffffff) | ((phy_mode == PHY_2M) ? 0 : 0x2000000);
-#endif
-
-#if defined(CH571_CH573)
 	BB->BB11 = (BB->BB11 & 0xfffffffc); // |2 for RX
-#endif
+
 
 	// This clears bit 17 (If set, seems to have no impact.)
 	LL->LL4 &= 0xfffdffff;
 
-#if !defined(CH571_CH573)
-	LL->STATUS = LL_STATUS_TX;
-#endif
+
 	LL->TMR = (uint32_t)(len *512); // needs optimisation, per phy mode
 
+	printf("TX begin\n");
 	BB->CTRL_CFG |= CTRL_CFG_START_TX;
 	BB->CTRL_TX &= 0xfffffffc;
 
-	LL->LL0 = 2; // Not sure what this does, but on RX it's 1
+	LL->LLCMD = LLCMD_TX; // Not sure what this does, but on RX it's 1
 
 	while(LL->TMR); // wait for tx buffer to empty
 	DevSetMode(0);
-	if(LL->LL0 & 3) {
+	if (LL->LLCMD & (LLCMD_TX | LLCMD_RX)) {
 		LL->CTRL_MOD &= CTRL_MOD_RFSTOP;
-		LL->LL0 |= 0x08;
+		LL->LLCMD |= 0x08;
 	}
 }
 
-void Frame_RX(uint8_t frame_info[], uint8_t channel, uint8_t phy_mode) {
+void Frame_RX(uint8_t frame_info[]) {
 	DevSetMode(0);
-	if(LL->LL0 & 3) {
+	if (LL->LLCMD & (LLCMD_TX | LLCMD_RX)) {
 		LL->CTRL_MOD &= CTRL_MOD_RFSTOP;
-		LL->LL0 |= 0x08;
+		LL->LLCMD |= 0x08;
 	}
 	LL->TMR = 0;
 
-	DevSetChannel(channel);
 
-#if defined(CH582_CH583) || defined(CH32V208)
-	BB->CTRL_CFG = (phy_mode == PHY_2M) ? CTRL_CFG_PHY_2M:
-				   (phy_mode == PHY_S2) ? CTRL_CFG_PHY_CODED:
-				   (phy_mode == PHY_S8) ? CTRL_CFG_PHY_CODED:
-										  CTRL_CFG_PHY_1M; // default 1M for now
-	if(phy_mode > PHY_2M) { // coded phy
-		BB->CTRL_CFG = (BB->CTRL_CFG & 0xffff3fff) | ((phy_mode == PHY_S2) ? 0x4000 : 0);
-	}
-#elif defined(CH571_CH573)
 	BB->CTRL_CFG = CTRL_CFG_PHY_1M; // no 2M PHY on ch571/3
-#else
-	BB->CTRL_CFG = (phy_mode == PHY_2M) ? CTRL_CFG_PHY_2M:
-										  CTRL_CFG_PHY_1M; // default 1M for now
-#endif
 
-#ifdef CH570_CH572
-	BB->BB9 = (BB->BB9 & 0xf9ffffff) | ((phy_mode == PHY_2M) ? 0 : 0x2000000);
-	RF->RF20 = (RF->RF20 & 0xffffffe0) | ((phy_mode == PHY_2M) ? (tuneFilter2M & 0x1f) : (tuneFilter & 0x1f));
-	BB->BB5 = (BB->BB5 & 0xffffffc0) | ((phy_mode == PHY_2M) ? 0xd : 0xb);
-	BB->BB7 = (BB->BB7 & 0xff00fc00) | ((phy_mode == PHY_2M) ? 0x7f00a0 : 0x79009c);
-#elif defined(CH571_CH573)
 	BB->BB11 = (BB->BB11 & 0xfffffffc) | 2; // no |2 for TX
-#elif defined(CH582_CH583) || defined(CH32V208)
-#if defined(CH582_CH583)
-	BB->BB4 = (phy_mode < PHY_S2) ? 0x3722d0 : 0x3722df;
-#elif defined(CH32V208)
-	BB->BB4 = (phy_mode < PHY_S2) ? 0x3222d0 : 0x34a4df;
-#endif
-	BB->BB5 = (phy_mode < PHY_S2) ? 0x8101901 : 0x8301ff1;
-	BB->BB6 = (phy_mode < PHY_S2) ? 0x31624 : 0x31619;
-	BB->BB8 = (phy_mode < PHY_S2) ? 0x90083 : 0x90086;
-	BB->BB9 = 0x1006310;
-	BB->BB10 = (phy_mode < PHY_S2) ? 0x28be : 0x28de;
-#elif defined(CH584_CH585) || defined(CH591_CH592)
-	BB->BB6 = (BB->BB6 & 0xfffffc00) | ((phy_mode == PHY_2M) ? 0x13a : 0x132);
-	BB->BB4 = (BB->BB4 & 0x00ffffff) | ((phy_mode == PHY_2M) ? 0x78000000 : 0x7f000000);
-#endif
 	BB->CRCINIT1 = 0x555555; // crc init
-#ifdef CH570_CH572
-	BB->ACCESSADDRESS2 = 0x8E89BED6;
-	BB->CRCINIT2 = 0x555555;
-	BB->CRCPOLY1 = (BB->CRCPOLY1 & 0xff000000) | 0x80032d; // crc poly
-	BB->CRCPOLY2 = (BB->CRCPOLY2 & 0xff000000) | 0x80032d;
-#endif
+
+
+	LL->LLCFG = 0x1e; 
+	// somewhere this was also 0x1f
+	// maybe bit 1 is auto?
+
 
 	//LL->LL1 = (LL->LL1 & 0xfffffffe) | 1; // 1: AUTO mode, to swap between RX <-> TX when either happened. 0: BASIC
 	//LL->FRAME_BUF = (uint32_t)frame_info; // also this only in AUTO mode
 
-	LL->LL0 = 1; // Not sure what this does, but on TX it's 2
+	LL->LLCMD = LLCMD_RX; // Not sure what this does, but on TX it's 2
 	rx_ready = 0;
 	DevSetMode(DEVSETMODE_RX);
-
 }

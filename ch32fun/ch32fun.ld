@@ -262,7 +262,27 @@ SECTIONS
 			PROVIDE( _ebss = .);
 		} >RAM AT>FLASH
 
+#if TARGET_MCU_LD == 10 && MCU_PACKAGE == 3
+	/* CH573 DMA quirk
+	 	DMA peripherals on the CH573 only consider the low 14 bits of the address
+		The high 18 bits are assumed to be 0x20004000 yet RAM spans 0x20003800 - 0x20007FFF
+		Thus the lower 2K of RAM are not accessible to the DMA peripherals
+		Here we create a dedicated .dma segement guaranteed to fall above 0x20004000
+	*/
+		.dma :
+		{
+			. = MAX(ORIGIN(RAM) + 0x800, ALIGN(4));
+			PROVIDE( _sdma = .);
+			*(.dma*)
+			. = ALIGN(4);
+			PROVIDE( _edma = .);
+		} >RAM
+
+		PROVIDE( _end = _edma);
+#else 
 		PROVIDE( _end = _ebss);
+#endif
+
 		PROVIDE( end = . );
 
 #if TARGET_MCU_LD == 8 || TARGET_MCU_LD == 9

@@ -496,7 +496,7 @@ WEAK int puts(const char *s)
 
 #define mini_strlen strlen
 
-int mini_itoa(long value, unsigned int radix, int uppercase, int unsig, char *buffer)
+int mini_itoa(long value, unsigned int radix, int uppercase, int unsig, int sign, char *buffer)
 {
 	char	*pbuffer = buffer;
 	int	negative = 0;
@@ -520,6 +520,8 @@ int mini_itoa(long value, unsigned int radix, int uppercase, int unsig, char *bu
 
 	if (negative)
 		*(pbuffer++) = '-';
+	else if (sign)
+		*(pbuffer++) = '+';
 
 	*(pbuffer) = '\0';
 
@@ -638,9 +640,15 @@ mini_vpprintf(int (*puts)(char* s, int len, void* buf), void* buf, const char *f
 			char pad_char = ' ';
 			int pad_to = 0;
 			char l = 0;
+			char sgn = 0;
 			char *ptr;
 
 			ch=*(fmt++);
+
+			if (ch == '+') {
+				sgn = 1;
+				ch=*(fmt++);
+			}
 
 			/* Zero padding requested */
 			if (ch == '0') pad_char = '0';
@@ -662,12 +670,12 @@ mini_vpprintf(int (*puts)(char* s, int len, void* buf), void* buf, const char *f
 				case 'u':
 				case 'd':
 					if(l) {
-						len = mini_itoa(va_arg(va, unsigned long), 10, 0, (ch=='u'), bf2);
+						len = mini_itoa(va_arg(va, unsigned long), 10, 0, (ch=='u'), sgn, bf2);
 					} else {
 						if(ch == 'u') {
-							len = mini_itoa((unsigned long) va_arg(va, unsigned int), 10, 0, 1, bf2);
+							len = mini_itoa((unsigned long) va_arg(va, unsigned int), 10, 0, 1, sgn, bf2);
 						} else {
-							len = mini_itoa((long) va_arg(va, int), 10, 0, 0, bf2);
+							len = mini_itoa((long) va_arg(va, int), 10, 0, 0, sgn, bf2);
 						}
 					}
 					len = mini_pad(bf2, len, pad_char, pad_to, bf);
@@ -677,9 +685,9 @@ mini_vpprintf(int (*puts)(char* s, int len, void* buf), void* buf, const char *f
 				case 'x':
 				case 'X':
 					if(l) {
-						len = mini_itoa(va_arg(va, unsigned long), 16, (ch=='X'), 1, bf2);
+						len = mini_itoa(va_arg(va, unsigned long), 16, (ch=='X'), 1, sgn, bf2);
 					} else {
-						len = mini_itoa((unsigned long) va_arg(va, unsigned int), 16, (ch=='X'), 1, bf2);
+						len = mini_itoa((unsigned long) va_arg(va, unsigned int), 16, (ch=='X'), 1, sgn, bf2);
 					}
 					len = mini_pad(bf2, len, pad_char, pad_to, bf);
 					len = puts(bf, len, buf);
