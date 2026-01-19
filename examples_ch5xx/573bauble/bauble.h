@@ -4,22 +4,28 @@
 #include <string.h>
 
 #ifdef CH571_CH573
-#define CTRL_CFG 				BB0
+#define CTRL_CFG				BB0
 #define CRCINIT1				BB1
-#define ACCESSADDRESS1     		BB2
-#define CTRL_TX            		BB11
+#define ACCESSADDRESS1			BB2
+#define CTRL_TX					BB11
 #define RSSI_ST					BB12
 #define BBINTEN					BB13
 #define BBSTATUS				BB14
 
 #define LLCMD					LL0
 #define LLCFG					LL1
-#define LLSTATUS 				LL2
-#define LLINTEN 				LL3
-#define CTRL_MOD 				LL20
-#define TMR               		LL24
-#define FRAME_BUF          		LL28
-#define STATE_BUF          		LL29
+#define LLSTATUS				LL2
+#define LLINTEN					LL3
+#define CTRL_MOD				LL20
+#define TMR						LL24
+#define TMR2					LL25
+#define FRAME_BUF				LL28
+#define STATE_BUF				LL29
+
+#define LLIRQ_RX_DONE			(1<<8)
+#define LLIRQ_TX_DONE			(1<<9)
+#define LLIRQ_TMR_EXPIRED		(1<<14)
+#define LLIRQ_TMR2_EXPIRED		(1<<15)
 
 #define DMA0_CTRL_CFG			DMA2
 #define DMA2_CTRL_CFG			DMA3
@@ -247,6 +253,10 @@ void BB_IRQHandler() {
 }
 #endif
 
+uint32_t ll_irq_flags = 0;
+uint32_t tx_begin_tmr = 0;
+uint32_t tx_complete_tmr = 0;
+
 __attribute__((interrupt))
 #if FUNCONF_ISR_IN_RAM
 __attribute((section(VECTOR_HANDLER_SECTION)))
@@ -254,6 +264,8 @@ __attribute((section(VECTOR_HANDLER_SECTION)))
 void LLE_IRQHandler() {
 	uint32_t flags = LL->LLSTATUS;
 	// printf("LL IRQ = %04x %04x\n", flags >> 16, flags & 0xffff);
+	printf("L%04x\n", flags & 0xffff);
+	__atomic_or_fetch(&ll_irq_flags, flags, __ATOMIC_SEQ_CST);
 
 	// printf("LL25 = %08x\n", LL->LL25);
 	// printf("LL->LL24_TMR = %08x\n", LL->TMR);
@@ -267,7 +279,7 @@ void LLE_IRQHandler() {
 #endif
 	}
 
-	// Haven't seen this one fire yet
+	// Haven't seen this one fire yet.
 	if (flags & (1 << 1)) {
 
 	}
@@ -277,8 +289,8 @@ void LLE_IRQHandler() {
 
 	}
 
-	// Packet received
-	if(flags & (1 << 8)) {
+	// 0x0100: Packet received
+	if(flags & LLIRQ_RX_DONE) {
 #ifdef ISLER_CALLBACK
 		ISLER_CALLBACK();
 #else
@@ -286,8 +298,10 @@ void LLE_IRQHandler() {
 #endif
 	}
 
-	// TX packet finished?
-	if(flags & (1 << 9)) {
+	// 0x0200: TX packet finished?
+	if(flags & LLIRQ_TX_DONE) { // 
+		tx_complete_tmr = LL->TMR;
+
 		LL->TMR = 400;
 		BB->CTRL_TX = (BB->CTRL_TX & 0xfffffffc) | 2;
 		BB->CTRL_CFG |= 0x10000000;
@@ -295,16 +309,22 @@ void LLE_IRQHandler() {
 		DevSetMode(0);
 		LL->CTRL_MOD &= CTRL_MOD_RFSTOP;
 		LL->LL0 |= 0x08;
+		// printf("LL IRQ  9\n");
 	}
 
-	// timer LL->TMR expired
-	if (flags & (1 << 14)) {
+	// 0x1000: no idea
+	if (flags & (1 << 12)) {
+		// printf("LL IRQ 12\n");
+	}
+
+	// 0x4000: timer LL->TMR expired
+	if (flags & LLIRQ_TMR_EXPIRED) {
 		printf("LL TMR EXP\n");
 	}
 
-	// Haven't seen this one fire yet
-	if (flags & (1 << 15)) {
-
+	// 0x8000: timer LL->TMR2 expired
+	if (flags & LLIRQ_TMR2_EXPIRED) {
+		// printf("LL TMR2 EXP\n");
 	}
 
 	// Clear all pending interrupts
@@ -344,18 +364,57 @@ uint8_t ReadRSSI() {
 
 void DevInit(uint8_t TxPower) {
 
+	// DEFAULTS
 	LL->LL5  =  80;
 	LL->LL7  =  10;
 	LL->LL9	 = 140;
-	LL->LL13 = 140;   
+	LL->LL11 =  60;
+	LL->LL13 = 140;
+	LL->LL15 =  60;
 	LL->LL17 =  80;
 	LL->LL19 =  10;
-
-	LL->LL11 = 60;
-	LL->LL15 = 60;
 	LL->LL22 = 246;
 
-	LL->LLINTEN = 0xc303;
+	LL->LL4  = 0x20;
+	LL->LL6  = 0x20;
+	LL->LL8  = 0x20;
+	LL->LL10 = 0x20;
+	LL->LL12 = 0x20;
+	LL->LL14 = 0x20;
+	LL->LL16 = 0x20;
+	LL->LL18 = 0x20;
+	LL->LL21 = 0x20;
+
+	// LL->LL4  =   0;
+	// LL->LL5  =   0;
+
+	// LL->LL6  =   0;
+	// LL->LL7  =   0;
+
+	// LL->LL8  =   0;
+	// LL->LL9  =   0;
+
+	// LL->LL10 =   0;
+	// LL->LL11 =   0;
+
+	// LL->LL12 =   0;
+	// LL->LL13 =   0;
+	
+	// LL->LL14 =   0;
+	// LL->LL15 =   0;
+
+	// LL->LL16 =   0;
+	// LL->LL17 =   0;
+
+	// LL->LL18 =   0;
+	// LL->LL19 =   0;
+ 
+	// LL->LL21 =   0;
+	// LL->LL22 =   0;
+
+	// LL->LLINTEN = 0xc303;
+	LL->LLINTEN = 0xffff;
+
 	NVIC->FIBADDRR = 0x20000000;
 	NVIC->VTFADDR[2] = (uint32_t)LLE_IRQHandler -NVIC->FIBADDRR;
 
@@ -413,7 +472,18 @@ void DevInit(uint8_t TxPower) {
 		R16_AUX_POWER_ADJ = (TxPower < 0x15) ? (R16_AUX_POWER_ADJ & 0xffef):
 												(R16_AUX_POWER_ADJ | 0x10);
 		);
-	BB->CTRL_TX = 0x10e78;
+
+	// BB->CTRL_TX = 0x10e78;
+	//BB->CTRL_TX=(1<<16) | (1<<11) | (1<<10) | (1<<9) | (0<<8) | (0<<7) | (1<<6) | (1<<5) | (1<<4) | (1<<3) | (0<<2);
+	// [26:21] = TX postfix dead time (us)
+	// [20:16] = TX postfix 0 carrier time (us)
+	// [11:9] = TX prefix 0 carrier time (us)
+	// [8:4] = TX dead carrier time (us)
+	// [3] not sure, maybe also dead carrier +1 us??  
+	// [2] = no apparent effect
+	BB->CTRL_TX = (31 << 21) | (31<<16) | (7 << 9) | (7 << 4) | (1<<3) | (0<<2);
+
+
 	BB->BB6 |= 0x8000;
 	BB->BB6 = (BB->BB6 & 0xffff807f) | 0x3500;
 	BB->BBINTEN = 0x152;
@@ -593,7 +663,8 @@ void DevSetFrequency(uint32_t freq) {
 }
 
 void Frame_TX(uint8_t adv[], size_t len) {
-	__attribute__((aligned(4))) uint8_t  ADV_BUF[len+2]; // for the advertisement, which is 37 bytes + 2 header bytes
+	// for the advertisement, which is 37 bytes + 2 header bytes
+	__attribute__((aligned(4))) uint8_t  ADV_BUF[len+2]; 
 
 	BB->CTRL_TX = (BB->CTRL_TX & 0xfffffffc) | 1;
 
@@ -603,7 +674,8 @@ void Frame_TX(uint8_t adv[], size_t len) {
 
 	BB->CRCINIT1 = 0x555555; // crc init
 
-	// LL->LL1 = (LL->LL1 & 0xfffffffe) | 1; // The "| 1" is for AUTO mode, to swap between RX <-> TX when either happened
+	// The "| 1" is for AUTO mode, to swap between RX <-> TX when either happened
+	// LL->LL1 = (LL->LL1 & 0xfffffffe) | 1;
 
 	ADV_BUF[0] = 0x02; // PDU 0x00, 0x02, 0x06 seem to work, with only 0x02 showing up on the phone
 	ADV_BUF[1] = len ;
@@ -619,20 +691,28 @@ void Frame_TX(uint8_t adv[], size_t len) {
 
 	BB->BB11 = (BB->BB11 & 0xfffffffc); // |2 for RX
 
-
-	// This clears bit 17 (If set, seems to have no impact.)
-	LL->LL4 &= 0xfffdffff;
-
-
-	LL->TMR = (uint32_t)(len *512); // needs optimisation, per phy mode
+	// needs optimisation, per phy mode
+	// LL->TMR = (uint32_t)(len *512);
+	LL->TMR = (uint32_t)(0xfffff);
 
 	printf("TX begin\n");
-	BB->CTRL_CFG |= CTRL_CFG_START_TX;
+	// This is wrong on the 573
+	// BB->CTRL_CFG |= CTRL_CFG_START_TX;
 	BB->CTRL_TX &= 0xfffffffc;
 
-	LL->LLCMD = LLCMD_TX; // Not sure what this does, but on RX it's 1
+	tx_begin_tmr = LL->TMR;
+	
+	LL->LLCMD = LLCMD_TX;
 
-	while(LL->TMR); // wait for tx buffer to empty
+	// wait for tx buffer to empty
+	while(LL->TMR) {
+		uint32_t irq_flags = __atomic_exchange_n(&ll_irq_flags, 0, __ATOMIC_SEQ_CST);
+		if (irq_flags & 0xffff) {
+			printf("LLE IRQ in wait: %04x\n", irq_flags & 0xffff);
+		}
+	}
+	printf("TX begin=%lx end=%lx dt = %ld\n", tx_begin_tmr, tx_complete_tmr, tx_begin_tmr - tx_complete_tmr);
+
 	DevSetMode(0);
 	if (LL->LLCMD & (LLCMD_TX | LLCMD_RX)) {
 		LL->CTRL_MOD &= CTRL_MOD_RFSTOP;

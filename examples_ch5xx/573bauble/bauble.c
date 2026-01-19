@@ -8,6 +8,16 @@
 #define LED PA8
 #endif
 
+#define SLEEPTIME_MS 1000
+
+// The advertisement to be sent. The MAC address should be in the first 6 bytes in reversed byte order,
+// after that any BLE flag can be used.
+uint8_t adv[] = {0x66, 0x55, 0x44, 0x33, 0x22, 0x11, // MAC (reversed)
+				 0x03, 0x19, 0x00, 0x00, // 0x19: "Appearance", 0x00, 0x00: "Unknown"
+				 0x08, 0x09, 'c', 'h', '3', '2', 'f', 'u', 'n'}; // 0x09: "Complete Local Name"
+// uint8_t adv_channels[] = {37,38,39};
+uint8_t adv_channels[] = {38};
+
 static void blink(int n) {
     for(int i = n-1; i >= 0; i--) {
         funDigitalWrite( LED, FUN_LOW ); // Turn on LED
@@ -84,29 +94,7 @@ static void dump_all(void)
     // dump_reg(RF, 31, "RF");
 }
 
-int main() {
-    SystemInit();
-    DCDCEnable(); // Enable the internal DCDC
-    funGpioInitAll();
-    funPinMode( LED, GPIO_CFGLR_OUT_2Mhz_PP );
-
-    printf(".~ ch32fun BLE RX ~.\n");
-
-    uint8_t txPower = 0x14;
-    RFCoreInit(txPower);
-    SetAccessAddress(0xdeadbeef);
-    // SetAccessAddress(0x00b1d00f);
-    blink(5);
-
-    DevSetChannel(39);
-    DevSetFrequency(2473000);
-
-    memset(LLE_BUF_TX, 0, 0x110);
-    memset(LLE_BUF_RX, 0xAA, 0x110);
-
-
-    uint32_t rssi_reg = BB->RSSI_ST;
-    printf("RSSI %02x %03x %04x %d\n", (rssi_reg >> 24) & 0xFF, (rssi_reg >> 15) & 0x1FF, (rssi_reg >> 0) & 0x7FFF, (int16_t)(rssi_reg << 1)/2);
+static void rx_loop() {
 
     printf("Starting RX....\n");
     Frame_RX(NULL);
@@ -134,4 +122,56 @@ int main() {
         Frame_RX(NULL);
         memset(LLE_BUF_RX, 0xAA, 0x110);
     }
+}
+
+static void tx_loop() {
+
+    printf("Starting TX....\n");
+
+    while(1) {
+		// BLE advertisements are sent on channels 37, 38 and 39, over the 1M PHY
+		for(int c = 0; c < sizeof(adv_channels); c++) {
+			printf("Advertising on channel %d\n", adv_channels[c]);
+            DevSetChannel(adv_channels[c]);
+			Frame_TX(adv, sizeof(adv));
+		}
+
+		// go to sleep between advertisements
+		printf("Sleeping...\n");
+        LL->LL25 = 0x1000;
+		Delay_Ms(SLEEPTIME_MS);
+
+		blink(1);
+	}
+}
+
+
+int main() {
+    SystemInit();
+    DCDCEnable(); // Enable the internal DCDC
+    funGpioInitAll();
+    funPinMode( LED, GPIO_CFGLR_OUT_2Mhz_PP );
+
+    printf(".~ CH573 bauBLE ~.\n");
+    printf("Build time: %s\n", __TIME__);
+
+    sweep_regs(RF, 54, "RF");
+
+    uint8_t txPower = LL_TX_POWER_MINUS_10_DBM;
+    RFCoreInit(txPower);
+    SetAccessAddress(0xdeadbeef);
+    // SetAccessAddress(0x00b1d00f);
+    blink(5);
+
+    DevSetChannel(39);
+    DevSetFrequency(2473000);
+
+    memset(LLE_BUF_TX, 0, 0x110);
+    memset(LLE_BUF_RX, 0xAA, 0x110);
+
+    // uint32_t rssi_reg = BB->RSSI_ST;
+    // printf("RSSI %02x %03x %04x %d\n", (rssi_reg >> 24) & 0xFF, (rssi_reg >> 15) & 0x1FF, (rssi_reg >> 0) & 0x7FFF, (int16_t)(rssi_reg << 1)/2);
+
+    tx_loop();
+    // rx_loop();
 }

@@ -15,14 +15,15 @@
 #define LED PA8
 #endif
 
-#define SLEEPTIME_MS 300
+#define SLEEPTIME_MS 1000
 
 // The advertisement to be sent. The MAC address should be in the first 6 bytes in reversed byte order,
 // after that any BLE flag can be used.
 uint8_t adv[] = {0x66, 0x55, 0x44, 0x33, 0x22, 0x11, // MAC (reversed)
 				 0x03, 0x19, 0x00, 0x00, // 0x19: "Appearance", 0x00, 0x00: "Unknown"
 				 0x08, 0x09, 'c', 'h', '3', '2', 'f', 'u', 'n'}; // 0x09: "Complete Local Name"
-uint8_t adv_channels[] = {37,38,39};
+// uint8_t adv_channels[] = {37,38,39};
+uint8_t adv_channels[] = {38};
 
 __attribute__((interrupt))
 void RTC_IRQHandler(void) {
@@ -61,7 +62,7 @@ int main() {
 	funGpioInitAll();
 	funPinMode( LED, GPIO_CFGLR_OUT_2Mhz_PP );
 
-	uint8_t txPower = LL_TX_POWER_0_DBM;
+	uint8_t txPower = LL_TX_POWER_MINUS_10_DBM;
 	RFCoreInit(txPower);
 
 	blink(5);
